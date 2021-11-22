@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title%}
+Профиль автора
+{% endblock %}
+
+{% block body %}
+<div class="container overflow-hidden p-3 border bg-light">
+    <img height="500px" width="500px" class="img-thumbnail "  src="{{ url_for('static', filename='images/image.jpg') }}"/>
+    <a href="" class="btn btn-success">Редактировать</a>
+
+</div>
+{% endblock %}
