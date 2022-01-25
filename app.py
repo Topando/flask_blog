@@ -125,7 +125,7 @@ def register():
 @app.route('/')
 @app.route('/home')
 def index():
-    return render_template("home_page.html")
+    return redirect("/posts")
 
 
 @app.route('/posts')
