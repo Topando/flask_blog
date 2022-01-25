@@ -4,6 +4,8 @@ from functools import wraps
 from flask_login import LoginManager, UserMixin, login_required, logout_user, login_manager, login_user, current_user
 from flask import Flask, render_template, request, redirect, flash, url_for, session
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine, engine
+from sqlalchemy.orm import Session, sessionmaker
 from urllib3.packages.six import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -12,7 +14,6 @@ app.secret_key = 'some secret salt'
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///blog.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['TESTING'] = False
-
 db = SQLAlchemy(app)
 manager = LoginManager(app)
 
@@ -27,6 +28,21 @@ def login_required(f):
             return f(*args, **kwargs)
 
     return wrap
+
+
+def check_admin():
+    print(2143142)
+    print(current_user.login == "f")
+    if str(current_user.login) == 'sashae@gmail.com':
+        return True
+    return False
+
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(50), nullable=False)
+
+    def __repr__(self):
+        return "<Admin %r" % self.id
 
 
 class Article(db.Model):
@@ -122,6 +138,10 @@ def posts():
 @app.route('/posts/<int:id>')
 @login_required
 def post_detail(id):
+    user = User.query.get(str(current_user).split(" ")[1][:-1])
+    print(user)
+    print(str(current_user).split(" ")[1][:-1])
+    print(current_user.login)
     article = Article.query.get(id)
     return render_template("post_detail.html", article=article)
 
@@ -129,30 +149,38 @@ def post_detail(id):
 @app.route('/posts/<int:id>/del')
 @login_required
 def post_del(id):
-    article = Article.query.get_or_404(id)
-    try:
-        db.session.delete(article)
-        db.session.commit()
-        return redirect('/posts')
-    except:
-        return "При удалени статьи произошла ошибка"
+    if check_admin() is True:
+        article = Article.query.get_or_404(id)
+        try:
+            db.session.delete(article)
+            db.session.commit()
+            return redirect('/posts')
+        except:
+            return "При удалени статьи произошла ошибка"
+    else:
+        return render_template("home_page.html")
+
 
 
 @app.route('/posts/<int:id>/update', methods=["POST", "GET"])
 @login_required
 def post_update(id):
-    article = Article.query.get(id)
-    if request.method == "POST":
-        article.title = request.form["title"]
-        article.intro = request.form["intro"]
-        article.text = request.form["text"]
-        try:
-            db.session.commit()
-            return redirect('/posts')
-        except:
-            return "При добавлении стьатьи произошла ошибка"
+    if check_admin() is True:
+
+        article = Article.query.get(id)
+        if request.method == "POST":
+            article.title = request.form["title"]
+            article.intro = request.form["intro"]
+            article.text = request.form["text"]
+            try:
+                db.session.commit()
+                return redirect('/posts')
+            except:
+                return "При добавлении стьатьи произошла ошибка"
+        else:
+            return render_template("post_update.html", article=article)
     else:
-        return render_template("post_update.html", article=article)
+        return render_template("home_page.html")
 
 
 @app.route('/profile')
@@ -160,28 +188,25 @@ def profile():
     return render_template("profile.html")
 
 
-@app.route('/my_profile')
-@login_required
-def my_profile():
-    return render_template("my_profile.html")
-
-
 @app.route('/create-article', methods=["POST", "GET"])
 @login_required
 def create_article():
-    if request.method == "POST":
-        title = request.form["title"]
-        intro = request.form["intro"]
-        text = request.form["text"]
-        article = Article(title=title, intro=intro, text=text)
-        try:
-            db.session.add(article)
-            db.session.commit()
-            return redirect('/posts')
-        except:
-            return "При добавлении стьатьи произошла ошибка"
+    if check_admin() is True:
+        if request.method == "POST":
+            title = request.form["title"]
+            intro = request.form["intro"]
+            text = request.form["text"]
+            article = Article(title=title, intro=intro, text=text)
+            try:
+                db.session.add(article)
+                db.session.commit()
+                return redirect('/posts')
+            except:
+                return "При добавлении стьатьи произошла ошибка"
+        else:
+            return render_template("create-article.html")
     else:
-        return render_template("create-article.html")
+        return render_template("home_page.html")
 
 
 @app.after_request
