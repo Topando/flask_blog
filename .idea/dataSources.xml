@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:sqlite:D:\Программирование\PythonL\Project\Website\blog.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="blog [2]" uuid="1eaa65c1-08b8-44c2-80c9-244be8d4dc32">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:D:\Programming\Python\Project\website_new\blog.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

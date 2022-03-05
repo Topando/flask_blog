@@ -3,14 +3,12 @@
   <component name="dataSourceStorageLocal" created-in="PY-212.5457.59">
     <data-source name="blog" uuid="2f6705c1-cd92-46ba-84b2-72a1fa1b0d7a">
       <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="SQLITE" exact-version="0" />
-<<<<<<< HEAD
       <secret-storage>forget</secret-storage>
-=======
-<<<<<<< HEAD
-=======
+      <schema-mapping />
+    </data-source>
+    <data-source name="blog [2]" uuid="1eaa65c1-08b8-44c2-80c9-244be8d4dc32">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="SQLITE" exact-version="0" />
       <auth-provider>no-auth</auth-provider>
->>>>>>> origin/main
->>>>>>> origin/main
       <schema-mapping />
     </data-source>
   </component>
