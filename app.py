@@ -104,12 +104,12 @@ def register():
         return render_template('register.html')
 
 
-@app.route('/')
 @app.route('/home')
 def index():
     return redirect('/posts')
 
 
+@app.route('/')
 @app.route('/posts')
 def posts():
     article = Article()
