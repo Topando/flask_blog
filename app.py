@@ -14,10 +14,10 @@ from sqlalchemy.orm import Session, sessionmaker
 from urllib3.packages.six import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 from data.profile import Profile
-
+from data.profile_update_form import ProfileForm
 app = Flask(__name__, static_folder="static")
-app.secret_key = 'some secret salt'
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///blog.db"
+app.config['SECRET_KEY'] = 'a really really really really long secret key'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['TESTING'] = False
 db = SQLAlchemy(app)
@@ -169,9 +169,24 @@ def profile():
     profile_info = db_sess.query(Profile).filter(Profile.id == 1).first()
     return render_template("profile.html", profile=profile_info)
 
-@app.route("/profile_update")
+@app.route("/profile_update", methods=['GET', 'POST'])
 def profile_update():
-    return render_template("profile_update.html")
+    profile_text = db_sess.query(Profile).filter(Profile.id == 1).first()
+    print(profile_text.name)
+    form = ProfileForm(name=profile_text.name, about=profile_text.about, rewards=profile_text.rewards)
+    print(213123)
+    if form.validate_on_submit():
+        name = form.name.data
+        about = form.about.data
+        rewards = form.rewards.data
+        try:
+            profile_update = Profile(name=name, about=about, rewards=rewards)
+            db_sess.query(Profile).filter(Profile.id == 1).update({"name": name, "about": about, "rewards": rewards})
+            db_sess.commit()
+        except Exception:
+            print("Бывает")
+        return redirect(url_for("profile"))
+    return render_template("profile_update.html", form=form)
 
 
 @app.route('/create-article', methods=["POST", "GET"])

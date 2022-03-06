@@ -5,8 +5,8 @@
 
 {% block body %}
 <div class="container overflow-hidden p-3 border bg-light">
-    <p class="text-center fs-1 fw-normal">
-        {{profile.name}}}
+    <p class="text-center display-4">
+        {{profile.name}}
     </p>
     <div class="container">
         <div class="row align-items-start">
@@ -15,11 +15,11 @@
                      src="{{ url_for('static', filename='images/image.jpg') }}"/>
             </div>
             <div class="col-lg-7">
-                <p>
-                    {{profile.about}}}
-                </p>
-                <p>
-                    {{profile.rewards}}}
+                <h5 class="lead text-break"><b>Обо мне:</b><br>
+                    {{profile.about}}
+                </h5>
+                <p class="lead text-break"><b>Конкурсы:</b><br>
+                    {{profile.rewards}}
                 </p>
             </div>
         </div>
