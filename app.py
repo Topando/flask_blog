@@ -1,16 +1,8 @@
-from datetime import datetime
-from functools import wraps
-
-import flask_login
-
 from data.admins import Admin
 from data.article import Article
-from flask_login import current_user
 from flask_login import LoginManager, UserMixin, login_required, logout_user, login_manager, login_user, current_user
 from flask import Flask, render_template, request, redirect, flash, url_for, session
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import create_engine, engine
-from sqlalchemy.orm import Session, sessionmaker
 from urllib3.packages.six import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 from data.profile import Profile
@@ -50,7 +42,6 @@ def check_admin():
         return True
     else:
         return False
-
 
 
 @manager.user_loader
@@ -185,7 +176,8 @@ def profile_update():
             about = form.about.data
             rewards = form.rewards.data
             try:
-                db_sess.query(Profile).filter(Profile.id == 1).update({"name": name, "about": about, "rewards": rewards})
+                db_sess.query(Profile).filter(Profile.id == 1).update(
+                    {"name": name, "about": about, "rewards": rewards})
                 db_sess.commit()
             except Exception:
                 print("Бывает")
@@ -254,3 +246,8 @@ def any_data_processor():
         return dict(user_aunt=name, check_admin=True)
     else:
         return dict(user_aunt="None")
+
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_sess.close()
