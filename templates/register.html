@@ -26,6 +26,10 @@
             <div class="modal-body p-5 pt-0">
                 <form class="" method="POST">
                     <div class="form-floating mb-3">
+                        <input type="name" name="name" class="form-control rounded-4" id="name">
+                        <label for="floatingInput">Логин</label>
+                    </div>
+                    <div class="form-floating mb-3">
                         <input type="email" name="login" class="form-control rounded-4" id="floatingInput"
                                placeholder="name@example.com">
                         <label for="floatingInput">Email адрес</label>
@@ -42,7 +46,7 @@
                         {% if er == "Пароли не совпадают" %}
                         <small class="text-muted">Пароли не совпадают</small>
                         {% elif er == "Такой email уже существует" %}
-                        <small class="text-muted">Такой email уже существует</small>
+                        <small class="text-muted">Такой email ли ник уже существует</small>
                         {% elif er == "Введите данные" %}
                         <small class="text-muted">Введите данные</small>
                         {% elif er == "Ошибка" %}

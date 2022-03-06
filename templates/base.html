@@ -13,7 +13,7 @@
 <body>
 <nav class="navbar navbar-expand navbar-dark bg-dark" aria-label="Second navbar example">
     <div class="container-fluid">
-        <a class="navbar-brand" href="/">Сайт работ А.Г</a>
+        <a class="navbar-brand" href="/">{{name_site}}</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample02"
                 aria-controls="navbarsExample02" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -30,9 +30,13 @@
                 </li>
 
             </ul>
-            <div class="concol-md-3 text-end">
-                <a href="/login" type="button" class="btn btn-outline-primary me-2">Вход</a>
-                <a href="/logout" type="button" class="btn btn-primary">Выход</a>
+            <div class="-grid gap-2 d-md-flex justify-content-md-end">
+                {% if user_aunt != "None" %}
+                <p class="text-white h6 p-3">{{user_aunt}}</p>
+                <a href="/logout" type="button" class="btn btn-primary p-3">Выход</a>
+                {%else%}
+                    <a href="/login" type="button" class="btn btn-outline-primary me-2">Вход</a>
+                {% endif%}
             </div>
         </div>
     </div>

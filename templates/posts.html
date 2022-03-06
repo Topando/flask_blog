@@ -11,7 +11,9 @@
         <h1>Все работы</h1>
     </div>
     <div class="col-md-4 col-md-offset-4">
+        {% if check_admin == True%}
         <a class="btn btn-warning" href="/create-article">Создать новою запись</a>
+        {%endif%}
     </div>
 </div>
 </div>

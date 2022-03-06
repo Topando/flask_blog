@@ -12,9 +12,10 @@
             {{article.text}}
         </p>
         <p><b>Дата: {{ article.date.date() }}</b></p>
+        {% if check_admin == True %}
         <a href="/posts/{{ article.id }}/del" class="btn btn-danger">Удалить</a>
         <a href="/posts/{{ article.id }}/update" class="btn btn-success">Редактировать</a>
-
+        {% endif %}
     </div>
 </div>
 {% endblock %}

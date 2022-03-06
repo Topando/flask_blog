@@ -15,6 +15,8 @@ from urllib3.packages.six import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 from data.profile import Profile
 from data.profile_update_form import ProfileForm
+from data.get_admin_form import GetAdminForm
+
 app = Flask(__name__, static_folder="static")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///blog.db"
 app.config['SECRET_KEY'] = 'a really really really really long secret key'
@@ -42,10 +44,13 @@ def login_required(f):
 
 
 def check_admin():
-    print(current_user.login == "f")
-    if str(current_user.login) == 'sashae@gmail.com':
+    id = current_user.get_id()
+    check = db_sess.query(Admin).filter(Admin.user_id == id).first()
+    if check != None:
         return True
-    return False
+    else:
+        return False
+
 
 
 @manager.user_loader
@@ -84,6 +89,7 @@ def logout():
 @app.route('/register', methods=["POST", "GET"])
 def register():
     login = request.form.get('login')
+    name = request.form.get("name")
     password = request.form.get('password')
     password2 = request.form.get('password2')
     if request.method == "POST":
@@ -94,7 +100,8 @@ def register():
         else:
             try:
                 hash_pwd = generate_password_hash(password)
-                new_user = User(login=login, password=hash_pwd)
+                new_user = User(login=login, name=name, password=hash_pwd)
+                print(new_user.name)
                 db_sess.add(new_user)
                 db_sess.commit()
                 return redirect('/login')
@@ -117,7 +124,7 @@ def posts():
     article = Article()
     articles = db_sess.query(Article).all()
     print(articles)
-    return render_template("posts.html", articles=articles)
+    return render_template("posts.html", articles=articles, check_admin=check_admin())
 
 
 @app.route('/posts/<int:id>')
@@ -125,13 +132,12 @@ def posts():
 def post_detail(id):
     print(current_user.get_id())
     article = db_sess.query(Article).get(id)
-    return render_template("post_detail.html", article=article)
+    return render_template("post_detail.html", article=article, check_admin=check_admin())
 
 
 @app.route('/posts/<int:id>/del')
 def post_del(id):
-    # if check_admin() is True:
-    if True:
+    if check_admin():
         article = db_sess.query(Article).filter(Article.id == id).first()
         print(article)
         try:
@@ -141,13 +147,12 @@ def post_del(id):
         except:
             return "При удалени статьи произошла ошибка"
     else:
-        return render_template("home_page.html")
+        return redirect(f"/posts/{id}")
 
 
 @app.route('/posts/<int:id>/update', methods=["POST", "GET"])
 def post_update(id):
-    # if check_admin() is True:
-    if True:
+    if check_admin():
         article = db_sess.query(Article).get(id)
         if request.method == "POST":
             article.title = request.form["title"]
@@ -161,38 +166,38 @@ def post_update(id):
         else:
             return render_template("post_update.html", article=article)
     else:
-        return render_template("home_page.html")
+        return redirect(f"/posts/{id}")
 
 
 @app.route('/profile')
 def profile():
     profile_info = db_sess.query(Profile).filter(Profile.id == 1).first()
-    return render_template("profile.html", profile=profile_info)
+    return render_template("profile.html", profile=profile_info, check_admin=check_admin())
+
 
 @app.route("/profile_update", methods=['GET', 'POST'])
 def profile_update():
-    profile_text = db_sess.query(Profile).filter(Profile.id == 1).first()
-    print(profile_text.name)
-    form = ProfileForm(name=profile_text.name, about=profile_text.about, rewards=profile_text.rewards)
-    print(213123)
-    if form.validate_on_submit():
-        name = form.name.data
-        about = form.about.data
-        rewards = form.rewards.data
-        try:
-            profile_update = Profile(name=name, about=about, rewards=rewards)
-            db_sess.query(Profile).filter(Profile.id == 1).update({"name": name, "about": about, "rewards": rewards})
-            db_sess.commit()
-        except Exception:
-            print("Бывает")
-        return redirect(url_for("profile"))
-    return render_template("profile_update.html", form=form)
+    if check_admin():
+        profile_text = db_sess.query(Profile).filter(Profile.id == 1).first()
+        form = ProfileForm(name=profile_text.name, about=profile_text.about, rewards=profile_text.rewards)
+        if form.validate_on_submit():
+            name = form.name.data
+            about = form.about.data
+            rewards = form.rewards.data
+            try:
+                db_sess.query(Profile).filter(Profile.id == 1).update({"name": name, "about": about, "rewards": rewards})
+                db_sess.commit()
+            except Exception:
+                print("Бывает")
+            return redirect(url_for("profile"))
+        return render_template("profile_update.html", form=form)
+    else:
+        return redirect("/profile")
 
 
 @app.route('/create-article', methods=["POST", "GET"])
 def create_article():
-    # if check_admin() is True:
-    if True:
+    if check_admin():
         if request.method == "POST":
             title = request.form["title"]
             intro = request.form["intro"]
@@ -209,7 +214,27 @@ def create_article():
         else:
             return render_template("create-article.html")
     else:
-        return render_template("home_page.html")
+        return redirect("/posts")
+
+
+@app.route("/get_admin", methods=["POST", "GET"])
+def get_admin():
+    form = GetAdminForm()
+    print(current_user.get_id())
+    if current_user.get_id() is not None:
+        print(21312)
+        if form.validate_on_submit():
+            password = form.password.data
+            print(password)
+            if password == "1234":
+                admin = Admin(user_id=current_user.get_id())
+                db_sess.add(admin)
+                db_sess.commit()
+            return redirect("/posts")
+        else:
+            print(12312)
+            return render_template("get_admin.html", form=form)
+    return redirect("/posts")
 
 
 @app.after_request
@@ -218,3 +243,14 @@ def redirect_to_signin(response):
         return redirect(url_for('login_page') + "?next" + request.url)
 
     return response
+
+
+@app.context_processor
+def any_data_processor():
+    if current_user.is_authenticated:
+        id = current_user.get_id()
+        user = db_sess.query(User).filter(User.id == id).first()
+        name = user.name
+        return dict(user_aunt=name, check_admin=True)
+    else:
+        return dict(user_aunt="None")
