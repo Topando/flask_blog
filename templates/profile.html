@@ -5,8 +5,28 @@
 
 {% block body %}
 <div class="container overflow-hidden p-3 border bg-light">
-    <img height="500px" width="500px" class="img-thumbnail "  src="{{ url_for('static', filename='images/image.jpg') }}"/>
-    <a href="" class="btn btn-success">Редактировать</a>
+    <p class="text-center fs-1 fw-normal">
+        {{profile.name}}}
+    </p>
+    <div class="container">
+        <div class="row align-items-start">
+            <div class="col-lg-5">
+                <img height="500px" width="500px" class="img-thumbnail "
+                     src="{{ url_for('static', filename='images/image.jpg') }}"/>
+            </div>
+            <div class="col-lg-7">
+                <p>
+                    {{profile.about}}}
+                </p>
+                <p>
+                    {{profile.rewards}}}
+                </p>
+            </div>
+        </div>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="/profile_update" class="btn btn-success btn-sm">Редактировать</a>
+        </div>
+    </div>
 
 </div>
 {% endblock %}

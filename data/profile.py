@@ -11,5 +11,4 @@ class Profile(SqlAlchemyBase):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     name = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     about = sqlalchemy.Column(sqlalchemy.String(200), nullable=True)
-    reward = sqlalchemy.Column(sqlalchemy.String(200), nullable=True)
-    user = orm.relation('User')
+    rewards = sqlalchemy.Column(sqlalchemy.String(200), nullable=True)

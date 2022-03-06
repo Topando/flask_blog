@@ -13,6 +13,7 @@ from sqlalchemy import create_engine, engine
 from sqlalchemy.orm import Session, sessionmaker
 from urllib3.packages.six import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
+from data.profile import Profile
 
 app = Flask(__name__, static_folder="static")
 app.secret_key = 'some secret salt'
@@ -23,6 +24,7 @@ db = SQLAlchemy(app)
 manager = LoginManager(app)
 from data import db_session
 from data.users import User
+
 db_session.global_init("db/blog.db")
 db_sess = db_session.create_session()
 
@@ -44,6 +46,7 @@ def check_admin():
     if str(current_user.login) == 'sashae@gmail.com':
         return True
     return False
+
 
 @manager.user_loader
 def load_user(user_id):
@@ -163,7 +166,12 @@ def post_update(id):
 
 @app.route('/profile')
 def profile():
-    return render_template("profile.html")
+    profile_info = db_sess.query(Profile).filter(Profile.id == 1).first()
+    return render_template("profile.html", profile=profile_info)
+
+@app.route("/profile_update")
+def profile_update():
+    return render_template("profile_update.html")
 
 
 @app.route('/create-article', methods=["POST", "GET"])
