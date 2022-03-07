@@ -1,7 +1,9 @@
+import os
+
 from data.admins import Admin
 from data.article import Article
 from flask_login import LoginManager, UserMixin, login_required, logout_user, login_manager, login_user, current_user
-from flask import Flask, render_template, request, redirect, flash, url_for, session
+from flask import Flask, render_template, request, redirect, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from urllib3.packages.six import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -10,16 +12,21 @@ from data.profile_update_form import ProfileForm
 from data.get_admin_form import GetAdminForm
 
 app = Flask(__name__, static_folder="static")
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///blog.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db/blog.db"
 app.config['SECRET_KEY'] = 'a really really really really long secret key'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['TESTING'] = False
 db = SQLAlchemy(app)
+print(os.getcwd())
+
 manager = LoginManager(app)
 from data import db_session
 from data.users import User
-
-db_session.global_init("db/blog.db")
+THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+print(THIS_FOLDER)
+my_file = os.path.join(THIS_FOLDER, './db/blog.db')
+print(my_file)
+db_session.global_init(my_file)
 db_sess = db_session.create_session()
 
 
@@ -59,7 +66,7 @@ def login_page():
                 user = db_sess.query(User).filter(User.login == login).first()
                 if user and check_password_hash(user.password, password):
                     login_user(user)
-                    return redirect(url_for("posts"))
+                    return redirect("/posts")
                 else:
                     return render_template("login.html", er="Логин или пароль введены неверно")
             else:
@@ -68,13 +75,13 @@ def login_page():
         else:
             return render_template('login.html')
     else:
-        return redirect(url_for('posts'))
+        return redirect('/posts')
 
 
 @app.route('/logout', methods=["POST", "GET"])
 def logout():
     logout_user()
-    return redirect(url_for('posts'))
+    return redirect('/posts')
 
 
 @app.route('/register', methods=["POST", "GET"])
@@ -181,7 +188,7 @@ def profile_update():
                 db_sess.commit()
             except Exception:
                 print("Бывает")
-            return redirect(url_for("profile"))
+            return redirect("/profile")
         return render_template("profile_update.html", form=form)
     else:
         return redirect("/profile")
@@ -232,7 +239,7 @@ def get_admin():
 @app.after_request
 def redirect_to_signin(response):
     if response.status_code == 404:
-        return redirect(url_for('login_page') + "?next" + request.url)
+        return redirect(('/login_page') + "?next" + request.url)
 
     return response
 

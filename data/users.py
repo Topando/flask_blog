@@ -2,7 +2,6 @@ import datetime
 import sqlalchemy
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import orm
-from app import db
 from .db_session import SqlAlchemyBase
 
 
