@@ -18,7 +18,6 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['TESTING'] = False
 db = SQLAlchemy(app)
 print(os.getcwd())
-
 manager = LoginManager(app)
 from data import db_session
 from data.users import User
