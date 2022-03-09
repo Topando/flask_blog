@@ -8,20 +8,31 @@
 <div class="container mt-5">
     <h1 class="text-center">Все работы</h1>
     <div class="container">
-        <div class="row text-center">
-            <div class="col-sm">
-                gtjdfz
+        <form method="post" novalidate>
+            <div class="row text-center">
+                <div>
+                    {{ form.csrf_token }}
+                </div>
+                <div class="col-sm">
+                    {{ form.types(class="form-control") }}
+                    {% for error in form.types.errors %}
+                    <div class="error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="col-sm">
+                    {{ form.filters(class="form-control") }}
+                    {% for error in form.filters.errors %}
+                    <div class="error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="col-sm">
+                    <a>{{ form.submit(type="submit", class="btn btn-primary") }}</a>
+                    {% if check_admin == True%}
+                    <a class="btn btn-warning" href="/create-article">Создать новою запись</a>
+                    {%endif%}
+                </div>
             </div>
-            <div class="col-sm">
-                Одна из трёх колонок
-            </div>
-            <div class="col-sm">
-                <a class="btn btn-warning" href="#">Поиск</a>
-                {% if check_admin == True%}
-                <a class="btn btn-warning" href="/create-article">Создать новою запись</a>
-                {%endif%}
-            </div>
-        </div>
+        </form>
     </div>
 </div>
 <div class="container mt-5">
@@ -39,7 +50,7 @@
     </div>
     {% endfor%}
     {%else%}
-    <p>У нас еще нет статей на этом сайие</p>`
+    <p class="display-6">У нас еще нет статей на эту тему</p>
     {%endif%}
 
 </div>

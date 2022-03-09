@@ -4,16 +4,19 @@ from flask import Flask, render_template, request, redirect
 from flask_login import LoginManager, logout_user, login_user, current_user
 from urllib3.packages.six import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
+from sqlalchemy import desc
 
 from data import db_session
 from data.admins import Admin
 from data.article import Article
-from data.createarticleform import CreateArticleForm
-from data.get_admin_form import GetAdminForm
 from data.profile import Profile
-from data.profile_update_form import ProfileForm
 from data.type import Type
 from data.users import User
+
+from data.create_article_form import CreateArticleForm
+from data.get_admin_form import GetAdminForm
+from data.profile_update_form import ProfileForm
+from data.posts_form import PostsForm
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 my_file = os.path.join(THIS_FOLDER, './db/blog.db')
@@ -113,19 +116,52 @@ def index():
     return redirect('/posts')
 
 
-@app.route('/')
-@app.route('/posts')
+def get_full_types():
+    names = []
+    for type in db_sess.query(Type).all():
+        names.append(type.name)
+    return names
+
+
+@app.route('/', methods=["POST", "GET"])
+@app.route('/posts', methods=["POST", "GET"])
 def posts():
-    articles = db_sess.query(Article).all()
-    return render_template("posts.html", articles=articles, check_admin=check_admin())
+    form = PostsForm()
+    form.types.choices += get_full_types()
+    if request.method == "POST":
+        type = form.types.data
+        filters = form.filters.data
+        if type != "Все записи":
+            form.types.data = type
+            types = db_sess.query(Type).filter(Type.name == type).first()
+            if filters == "По дате (убываение)":
+                articles_type = db_sess.query(Article).order_by(desc(Article.date)).filter(
+                    Article.type == types.id).all()
+            else:
+                articles_type = db_sess.query(Article).order_by(desc(Article.date)).filter(
+                    Article.type == types.id).all()
+                articles_type.reverse()
+        else:
+            if filters == "По дате (убываение)":
+                articles_type = db_sess.query(Article).order_by(desc(Article.date)).all()
+            else:
+                articles_type = db_sess.query(Article).order_by(desc(Article.date)).all()
+                articles_type.reverse()
+
+        return render_template("posts.html", articles=articles_type, check_admin=check_admin(), form=form)
+    else:
+        articles_type = db_sess.query(Article).order_by(desc(Article.date)).all()
+        return render_template("posts.html", articles=articles_type, check_admin=check_admin(), form=form)
 
 
 @app.route('/posts/<int:id>')
 @login_required
 def post_detail(id):
     article = db_sess.query(Article).get(id)
+    print(article.type)
+    print(db_sess.query(Type).filter(Type.id == article.type).first().name)
     return render_template("post_detail.html", article=article, check_admin=check_admin(),
-                           type=db_sess.query(Type).filter(Type.id == Article.type).first().name)
+                           type=db_sess.query(Type).filter(Type.id == article.type).first().name)
 
 
 @app.route('/posts/<int:id>/del')
