@@ -1,32 +1,31 @@
 import os
 
-from data.admins import Admin
-from data.article import Article
-from flask_login import LoginManager, UserMixin, login_required, logout_user, login_manager, login_user, current_user
-from flask import Flask, render_template, request, redirect, flash, session
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, render_template, request, redirect
+from flask_login import LoginManager, logout_user, login_user, current_user
 from urllib3.packages.six import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
+
+from data import db_session
+from data.admins import Admin
+from data.article import Article
+from data.createarticleform import CreateArticleForm
+from data.get_admin_form import GetAdminForm
 from data.profile import Profile
 from data.profile_update_form import ProfileForm
-from data.get_admin_form import GetAdminForm
+from data.type import Type
+from data.users import User
+
+THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+my_file = os.path.join(THIS_FOLDER, './db/blog.db')
+db_session.global_init(my_file)
+db_sess = db_session.create_session()
 
 app = Flask(__name__, static_folder="static")
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db/blog.db"
 app.config['SECRET_KEY'] = 'a really really really really long secret key'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['TESTING'] = False
-db = SQLAlchemy(app)
-print(os.getcwd())
+
 manager = LoginManager(app)
-from data import db_session
-from data.users import User
-THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
-print(THIS_FOLDER)
-my_file = os.path.join(THIS_FOLDER, './db/blog.db')
-print(my_file)
-db_session.global_init(my_file)
-db_sess = db_session.create_session()
 
 
 def login_required(f):
@@ -44,7 +43,7 @@ def login_required(f):
 def check_admin():
     id = current_user.get_id()
     check = db_sess.query(Admin).filter(Admin.user_id == id).first()
-    if check != None:
+    if check is not None:
         return True
     else:
         return False
@@ -98,7 +97,6 @@ def register():
             try:
                 hash_pwd = generate_password_hash(password)
                 new_user = User(login=login, name=name, password=hash_pwd)
-                print(new_user.name)
                 db_sess.add(new_user)
                 db_sess.commit()
                 return redirect('/login')
@@ -118,30 +116,27 @@ def index():
 @app.route('/')
 @app.route('/posts')
 def posts():
-    article = Article()
     articles = db_sess.query(Article).all()
-    print(articles)
     return render_template("posts.html", articles=articles, check_admin=check_admin())
 
 
 @app.route('/posts/<int:id>')
 @login_required
 def post_detail(id):
-    print(current_user.get_id())
     article = db_sess.query(Article).get(id)
-    return render_template("post_detail.html", article=article, check_admin=check_admin())
+    return render_template("post_detail.html", article=article, check_admin=check_admin(),
+                           type=db_sess.query(Type).filter(Type.id == Article.type).first().name)
 
 
 @app.route('/posts/<int:id>/del')
 def post_del(id):
     if check_admin():
         article = db_sess.query(Article).filter(Article.id == id).first()
-        print(article)
         try:
             db_sess.delete(article)
             db_sess.commit()
             return redirect('/posts')
-        except:
+        except Exception:
             return "При удалени статьи произошла ошибка"
     else:
         return redirect(f"/posts/{id}")
@@ -149,19 +144,44 @@ def post_del(id):
 
 @app.route('/posts/<int:id>/update', methods=["POST", "GET"])
 def post_update(id):
+    article = db_sess.query(Article).filter(Article.id == id).first()
+    form = CreateArticleForm(name=article.title, intro=article.intro, text=article.text)
+    name = db_sess.query(Type).all()
+    names = []
+    for i in name:
+        names.append(i.name)
+    form.types.choices = names
     if check_admin():
         article = db_sess.query(Article).get(id)
         if request.method == "POST":
-            article.title = request.form["title"]
-            article.intro = request.form["intro"]
-            article.text = request.form["text"]
-            try:
-                db_sess.commit()
-                return redirect('/posts')
-            except:
-                return "При добавлении стьатьи произошла ошибка"
+            if form.validate_on_submit():
+                article.title = form.name.data
+                article.intro = form.intro.data
+                article.text = form.text.data
+                type = form.types.data
+                new_type = form.new_type.data
+                if len(new_type) == 0:
+                    article.type = db_sess.query(Type).filter(Type.name == type).first().id
+                else:
+                    if len(db_sess.query(Type).filter(Type.name == new_type).all()) == 0:
+                        type = Type(name=new_type)
+                        try:
+                            db_sess.add(type)
+                            db_sess.commit()
+                        except Exception:
+                            print("sorry")
+                        article.type = db_sess.query(Type).filter(Type.name == new_type).first().id
+
+                    else:
+                        article.type = db_sess.query(Type).filter(Type.name == type).first()
+
+                try:
+                    db_sess.commit()
+                    return redirect('/posts')
+                except:
+                    return "При добавлении стьатьи произошла ошибка"
         else:
-            return render_template("post_update.html", article=article)
+            return render_template("post_update.html", article=article, form=form)
     else:
         return redirect(f"/posts/{id}")
 
@@ -196,21 +216,45 @@ def profile_update():
 @app.route('/create-article', methods=["POST", "GET"])
 def create_article():
     if check_admin():
+        form = CreateArticleForm()
+        name = db_sess.query(Type).all()
+        names = []
+        for i in name:
+            names.append(i.name)
+        form.types.choices = names
         if request.method == "POST":
-            title = request.form["title"]
-            intro = request.form["intro"]
-            text = request.form["text"]
-            article = Article(title=title, intro=intro, text=text)
-            try:
-                print(article, text, intro, title)
-                db_sess.add(article)
-                db_sess.commit()
+            if form.validate_on_submit():
+                title = form.name.data
+                intro = form.intro.data
+                text = form.text.data
+                type = form.types.data
+                new_type = form.new_type.data
+                if len(new_type) == 0:
+                    id_type = db_sess.query(Type).filter(Type.name == type).first()
+                else:
+                    if len(db_sess.query(Type).filter(Type.name == new_type).all()) == 0:
+                        type = Type(name=new_type)
+                        try:
+                            db_sess.add(type)
+                            db_sess.commit()
+                        except Exception:
+                            print("sorry")
+                        id_type = db_sess.query(Type).filter(Type.name == new_type).first()
 
-                return redirect('/posts')
-            except:
-                return "При добавлении стьатьи произошла ошибка"
+                    else:
+                        id_type = db_sess.query(Type).filter(Type.name == type).first()
+                article = Article(title=title, intro=intro, text=text, type=id_type.id)
+                try:
+                    db_sess.add(article)
+                    db_sess.commit()
+
+                    return redirect('/posts')
+                except:
+                    return "При добавлении стьатьи произошла ошибка"
+            else:
+                return render_template("create-article.html", form=form)
         else:
-            return render_template("create-article.html")
+            return render_template("create-article.html", form=form)
     else:
         return redirect("/posts")
 
@@ -218,19 +262,15 @@ def create_article():
 @app.route("/get_admin", methods=["POST", "GET"])
 def get_admin():
     form = GetAdminForm()
-    print(current_user.get_id())
     if current_user.get_id() is not None:
-        print(21312)
         if form.validate_on_submit():
             password = form.password.data
-            print(password)
             if password == "1234":
                 admin = Admin(user_id=current_user.get_id())
                 db_sess.add(admin)
                 db_sess.commit()
             return redirect("/posts")
         else:
-            print(12312)
             return render_template("get_admin.html", form=form)
     return redirect("/posts")
 

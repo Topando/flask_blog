@@ -6,33 +6,41 @@
 
 {% block body %}
 <div class="container mt-5">
-<div class="row">
-    <div class="col-md-8">
-        <h1>Все работы</h1>
+    <h1 class="text-center">Все работы</h1>
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-sm">
+                gtjdfz
+            </div>
+            <div class="col-sm">
+                Одна из трёх колонок
+            </div>
+            <div class="col-sm">
+                <a class="btn btn-warning" href="#">Поиск</a>
+                {% if check_admin == True%}
+                <a class="btn btn-warning" href="/create-article">Создать новою запись</a>
+                {%endif%}
+            </div>
+        </div>
     </div>
-    <div class="col-md-4 col-md-offset-4">
-        {% if check_admin == True%}
-        <a class="btn btn-warning" href="/create-article">Создать новою запись</a>
-        {%endif%}
-    </div>
-</div>
 </div>
 <div class="container mt-5">
     {%if articles|length > 0 %}
-        {%for el in articles %}
-            <div class="alert alert-info">
-                <h2>
-                    {{ el.title }}
-                </h2>
-                <p>
-                    {{el.intro}}
-                </p>
-                <p><b>Дата: {{ el.date.date() }}</b></p>
-                <a href="/posts/{{ el.id }}" class="btn btn-warning">Детальнее</a>
-            </div>
-        {% endfor%}
+    {%for el in articles %}
+    <div class="alert alert-info">
+        <h2>
+            {{ el.title }}
+        </h2>
+        <p>
+            {{el.intro}}
+        </p>
+        <p><b>Дата: {{ el.date.date() }}</b></p>
+        <a href="/posts/{{ el.id }}" class="btn btn-warning">Детальнее</a>
+    </div>
+    {% endfor%}
     {%else%}
-        <p>У нас еще нет статей на этом сайие</p>`
+    <p>У нас еще нет статей на этом сайие</p>`
     {%endif%}
+
 </div>
 {% endblock %}

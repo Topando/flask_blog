@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, HiddenField, PasswordField
-from wtforms.validators import DataRequired, Email
+from wtforms import SubmitField,  PasswordField
+from wtforms.validators import DataRequired
 
 
 class GetAdminForm(FlaskForm):

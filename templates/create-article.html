@@ -4,15 +4,50 @@
 {% endblock %}
 
 
-
 {% block body %}
 <div class="container mt-5">
-        <h1>Добавление статьи</h1>
-        <form method="post">
-            <input type="text" name="title" id="title" class="form-control" placeholder="Введите название"><br>
-            <textarea name="intro" id="intro" class="form-control" placeholder="Введите интро"></textarea><br>
-            <textarea name="text" id="text" class="form-control" placeholder="Введите основной текст"></textarea><br>
-            <input type="submit" class="btn btn-success" value="Отправить">
-        </form>
+    <h1>Добавление статьи</h1>
+    <form method="post" novalidate>
+        <div class="d-grid gap-3">
+
+            <div>
+                {{ form.csrf_token }}
+            </div>
+            <p>
+                {{ form.name.label }}
+                {{ form.name(class="form-control") }}
+                {% for error in form.name.errors %}
+            <div class="error">{{ error }}</div>
+            {% endfor %}
+            </p>
+
+            <p>
+                {{ form.intro.label }}
+                {{ form.intro(class="form-control text-break") }}
+                {% for error in form.intro.errors %}
+            <div class="error">{{ error }}</div>
+            {% endfor %}
+            </p>
+            <p>
+                {{ form.text.label }}
+                {{ form.text(class="form-control") }}
+                {% for error in form.text.errors %}
+            <div class="error">{{ error }}</div>
+            {% endfor %}
+            </p>
+            {{ form.types(class="form-control") }}
+            {% for error in form.types.errors %}
+            <div class="error">{{ error }}</div>
+            {% endfor %}
+            <p>
+                {{ form.new_type.label }}
+                {{ form.new_type(class="form-control") }}
+                {% for error in form.new_type.errors %}
+            <div class="error">{{ error }}</div>
+            {% endfor %}
+            </p>
+            <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+        </div>
+    </form>
 </div>
 {% endblock %}

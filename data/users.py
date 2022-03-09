@@ -1,6 +1,4 @@
-import datetime
 import sqlalchemy
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import orm
 from .db_session import SqlAlchemyBase
 
@@ -13,7 +11,7 @@ class User(SqlAlchemyBase):
     login = sqlalchemy.Column(sqlalchemy.String(128), nullable=False, unique=True)
     password = sqlalchemy.Column(sqlalchemy.String(255), nullable=False)
 
-    news = orm.relation("Admin", back_populates='user')
+    admin = orm.relation("Admin", back_populates='user')
 
     def is_active(self):
         return True
