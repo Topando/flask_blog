@@ -257,6 +257,11 @@ def create_article():
         names = []
         for i in name:
             names.append(i.name)
+        if len(names) == 0:
+            types = Type(name="сочинение")
+            db_sess.add(types)
+            db_sess.commit()
+            names.append("сочинение")
         form.types.choices = names
         if request.method == "POST":
             if form.validate_on_submit():
@@ -279,6 +284,7 @@ def create_article():
 
                     else:
                         id_type = db_sess.query(Type).filter(Type.name == type).first()
+                        print(id_type)
                 article = Article(title=title, intro=intro, text=text, type=id_type.id)
                 try:
                     db_sess.add(article)
