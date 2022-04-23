@@ -232,11 +232,21 @@ def profile():
 def profile_update():
     if check_admin():
         profile_text = db_sess.query(Profile).filter(Profile.id == 1).first()
-        form = ProfileForm(name=profile_text.name, about=profile_text.about, rewards=profile_text.rewards)
+        if profile_text is None:
+            profile_1 = Profile(name="AA")
+            db_sess.add(profile_1)
+            db_sess.commit()
+            profile_text = db_sess.query(Profile).filter(Profile.id == 1).first()
+            print(profile_text)
+        form = ProfileForm(about=profile_text.about, rewards=profile_text.rewards)
         if form.validate_on_submit():
-            name = form.name.data
-            about = form.about.data
-            rewards = form.rewards.data
+            try:
+                name = form.name.data
+                about = form.about.data
+                rewards = form.rewards.data
+                print(name)
+            except Exception:
+                return render_template("profile.html")
             try:
                 db_sess.query(Profile).filter(Profile.id == 1).update(
                     {"name": name, "about": about, "rewards": rewards})
